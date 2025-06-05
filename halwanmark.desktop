@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=HalwanMark
 Comment=Markdown file editor and viewer
-Exec=/usr/bin/hel-markdown
+Exec=python3 /usr/bin/hel-markdown
 Icon=hel-markdown
 Terminal=false
 Type=Application
