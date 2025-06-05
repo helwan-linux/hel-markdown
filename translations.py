@@ -49,12 +49,28 @@ translations = {
                      "Ctrl+Shift+L: Image\n"
                      "Ctrl+`: Inline Code\n"
                      "Ctrl+Shift+`: Code Block\n"
-                     "Ctrl+T: Insert Table (NEW!)\n\n"
+                     "Ctrl+T: Insert Table (NEW!)\n"
+                     "Ctrl+F: Find/Replace (NEW!)\n\n"
                      "Enjoy writing in Markdown!",
-        "create_table_title": "Create Table", # <-- Ensure this key is present
-        "rows_label": "Number of Rows:",     # <-- Ensure this key is present
-        "cols_label": "Number of Columns:",     # <-- Ensure this key is present
-        "table_inserted": "Table with {} rows and {} columns inserted." # <-- Ensure this key is present
+        "create_table_title": "Create Table",
+        "rows_label": "Number of Rows:",
+        "cols_label": "Number of Columns:",
+        "table_inserted": "Table with {} rows and {} columns inserted.",
+        "word_count": "Words: {}",
+        "char_count": "Chars: {}",
+        "find_replace_title": "Find / Replace",
+        "find_label": "Find:",
+        "replace_label": "Replace with:",
+        "find_next": "Find Next",
+        "find_prev": "Find Previous",
+        "replace_button": "Replace",
+        "replace_all_button": "Replace All",
+        "no_match_found": "No match found for '{}'.",
+        "export_html": "Export to HTML",
+        "html_file_saved": "HTML exported to: {}",
+        "export_error": "Error exporting file: {}",
+        "untitled_file": "Untitled",
+        "save_changes_prompt": "Do you want to save changes to {}?"
     },
     "ar": {
         "app_title": "محرر ماركداون حلوان مارك",
@@ -105,11 +121,27 @@ translations = {
                      "Ctrl+Shift+L: صورة\n"
                      "Ctrl+`: كود سطري\n"
                      "Ctrl+Shift+`: كتلة كود\n"
-                     "Ctrl+T: إدراج جدول (جديد!)\n\n"
+                     "Ctrl+T: إدراج جدول (جديد!)\n"
+                     "Ctrl+F: بحث/استبدال (جديد!)\n\n"
                      "استمتع بالكتابة في الماركداون!",
-        "create_table_title": "إنشاء جدول", # <-- Ensure this key is present
-        "rows_label": "عدد الصفوف:",     # <-- Ensure this key is present
-        "cols_label": "عدد الأعمدة:",     # <-- Ensure this key is present
-        "table_inserted": "تم إدراج جدول بـ {} صفوف و {} أعمدة." # <-- Ensure this key is present
+        "create_table_title": "إنشاء جدول",
+        "rows_label": "عدد الصفوف:",
+        "cols_label": "عدد الأعمدة:",
+        "table_inserted": "تم إدراج جدول بـ {} صفوف و {} أعمدة.",
+        "word_count": "كلمات: {}",
+        "char_count": "حروف: {}",
+        "find_replace_title": "بحث / استبدال",
+        "find_label": "بحث عن:",
+        "replace_label": "استبدال بـ:",
+        "find_next": "البحث التالي",
+        "find_prev": "البحث السابق",
+        "replace_button": "استبدال",
+        "replace_all_button": "استبدال الكل",
+        "no_match_found": "لم يتم العثور على تطابق لـ '{}'.",
+        "export_html": "تصدير إلى HTML",
+        "html_file_saved": "تم تصدير HTML إلى: {}",
+        "export_error": "خطأ في تصدير الملف: {}",
+        "untitled_file": "بلا عنوان",
+        "save_changes_prompt": "هل تريد حفظ التغييرات على {}؟"
     }
 }
