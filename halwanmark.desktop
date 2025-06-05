@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=HalwanMark
+Comment=Markdown file editor and viewer
+Exec=halwanmark
+Icon=halwanmark
+Terminal=false
+Type=Application
+Categories=Utility;TextEditor;
+
