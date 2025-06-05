@@ -1,5 +1,5 @@
 [Desktop Entry]
-Name=HalwanMark
+Name=HelwanMark
 Comment=Markdown file editor and viewer
 Exec=python3 /usr/bin/hel-markdown
 Icon=hel-markdown
