@@ -1,7 +1,7 @@
 # Maintainer: Said <youremail@example.com>
 pkgname=hel-markdown
 pkgver=1.0.0
-pkgrel=1
+pkgrel=3
 pkgdesc="A simple markdown editor/viewer built with PyQt5 for Helwan Linux"
 arch=('any')
 url="https://github.com/helwan-linux/hel-markdown"
