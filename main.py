@@ -4,14 +4,46 @@ from PyQt5.QtGui import QFont, QIcon, QTextCursor
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QTextEdit,
     QSplitter, QFileDialog, QAction, QMainWindow, QMessageBox,
-    QToolBar, QMenu, QShortcut
+    QToolBar, QMenu, QShortcut, QDialog, QFormLayout, QSpinBox, QDialogButtonBox
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QKeySequence
 import markdown
-from translations import translations
+from translations import translations # تأكد أن ملف translations.py موجود في نفس الدليل
 
+# --- TableCreationDialog Class ---
+# هذا الفصل يمثل النافذة المنبثقة لإنشاء الجدول
+class TableCreationDialog(QDialog):
+    def __init__(self, parent=None, current_language="en"):
+        super().__init__(parent)
+        self.setWindowTitle(translations[current_language]["create_table_title"])
+        self.setWindowIcon(QIcon("icons/halwanmark.png")) # تأكد من وجود الأيقونة هنا
 
+        self.rows_spinbox = QSpinBox()
+        self.rows_spinbox.setRange(1, 99)
+        self.rows_spinbox.setValue(3) # قيمة افتراضية للصفوف
+
+        self.cols_spinbox = QSpinBox()
+        self.cols_spinbox.setRange(1, 99)
+        self.cols_spinbox.setValue(2) # قيمة افتراضية للأعمدة
+
+        layout = QFormLayout()
+        layout.addRow(translations[current_language]["rows_label"], self.rows_spinbox)
+        layout.addRow(translations[current_language]["cols_label"], self.cols_spinbox)
+
+        # إضافة أزرار موافق وإلغاء
+        self.buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel, self)
+        self.buttons.accepted.connect(self.accept)
+        self.buttons.rejected.connect(self.reject)
+
+        layout.addWidget(self.buttons)
+        self.setLayout(layout)
+
+    def get_table_dimensions(self):
+        # ترجع عدد الصفوف والأعمدة التي اختارها المستخدم
+        return self.rows_spinbox.value(), self.cols_spinbox.value()
+
+# --- MarkdownEditor Class ---
 class MarkdownEditor(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -77,6 +109,9 @@ class MarkdownEditor(QMainWindow):
         QShortcut(QKeySequence("Ctrl+Shift+L"), self, lambda: self.insert_text_at_cursor("![Alt Text](url)"))
         QShortcut(QKeySequence("Ctrl+`"), self, lambda: self.insert_wrapped_text("`", "`"))
         QShortcut(QKeySequence("Ctrl+Shift+`"), self, lambda: self.insert_text_at_cursor("```\n\n```"))
+        # إضافة اختصار لإنشاء الجدول (اختياري)
+        QShortcut(QKeySequence("Ctrl+T"), self, self.insert_table_dialog)
+
 
     def create_toolbar(self):
         if not hasattr(self, 'toolbar'):
@@ -140,9 +175,8 @@ class MarkdownEditor(QMainWindow):
         format_menu.addAction(translations[self.current_language]["blockquote"], lambda: self.insert_text_at_cursor("> "))
         format_menu.addAction(translations[self.current_language]["horizontal_line"], lambda: self.insert_text_at_cursor("\n---\n"))
         format_menu.addSeparator()
-        format_menu.addAction(translations[self.current_language]["table"], lambda: self.insert_text_at_cursor(
-            "| Header 1 | Header 2 |\n|----------|----------|\n| Cell 1   | Cell 2   |\n"
-        ))
+        # هنا التعديل: استدعاء الدالة الجديدة لإنشاء الجدول
+        format_menu.addAction(translations[self.current_language]["table"], self.insert_table_dialog)
 
         format_action = QAction(translations[self.current_language]["format"], self)
         format_action.setMenu(format_menu)
@@ -199,11 +233,92 @@ class MarkdownEditor(QMainWindow):
     def insert_heading2(self):
         self.insert_text_at_cursor("## ")
 
+    # --- الدوال الجديدة لإدراج الجدول ---
+    def insert_table_dialog(self):
+        # إنشاء واستعراض نافذة الحوار لإنشاء الجدول
+        dialog = TableCreationDialog(self, self.current_language)
+        if dialog.exec_() == QDialog.Accepted: # إذا ضغط المستخدم على "موافق"
+            rows, cols = dialog.get_table_dimensions() # احصل على الأبعاد من النافذة
+            markdown_table = self.generate_markdown_table(rows, cols) # أنشئ نص الماركداون
+            self.insert_text_at_cursor(markdown_table) # أدرج الجدول في المحرر
+            self.statusBar().showMessage(translations[self.current_language]["table_inserted"].format(rows, cols))
+
+    def generate_markdown_table(self, rows, cols):
+        if rows <= 0 or cols <= 0:
+            return ""
+
+        # صف الرأس (Header row)
+        # مثال: | Header 1 | Header 2 |
+        header_row = "| " + " | ".join([f"Header {i+1}" for i in range(cols)]) + " |\n"
+
+        # صف الفاصل (Separator row)
+        # مثال: |----------|----------|
+        # نستخدم 10 شرطات كافتراضي، يمكن زيادتها
+        separator_row = "| " + " | ".join(["-" * 10 for _ in range(cols)]) + " |\n"
+
+        # صفوف البيانات (Data rows)
+        data_rows = []
+        for r in range(rows):
+            # مثال: | Cell 1,1 | Cell 1,2 |
+            row_content = "| " + " | ".join([f"Cell {r+1},{c+1}" for c in range(cols)]) + " |"
+            data_rows.append(row_content)
+
+        # دمج جميع الأجزاء لإنشاء الجدول الكامل
+        return header_row + separator_row + "\n".join(data_rows) + "\n"
+    # --- نهاية الدوال الجديدة ---
+
+
     def update_preview(self):
         raw_text = self.editor.toPlainText()
-        # إضافة دعم جداول وفك الرموز الخاصة
+        # إضافة دعم جداول وفك الرموز الخاصة (extensions)
         html = markdown.markdown(raw_text, extensions=['fenced_code', 'tables', 'codehilite', 'toc'])
-        self.preview.setHtml(html)
+
+        # تحديد الألوان بناءً على الثيم الحالي لتطبيقها في CSS
+        if self.styleSheet(): # إذا كان هناك ستايل شيت، نفترض أنه الثيم الداكن
+            text_color = "#f0f0f0"
+            border_color = "#555"
+            header_bg = "#444"
+            code_bg = "#3a3a3a" # خلفية أفتح قليلاً للكود في الوضع الداكن
+        else: # الثيم الفاتح
+            text_color = "#000000"
+            border_color = "#ddd"
+            header_bg = "#f2f2f2"
+            code_bg = "#eaeaea" # خلفية أغمق قليلاً للكود في الوضع الفاتح
+
+        # حقن تنسيقات CSS لضمان عرض أفضل للجداول ومقاطع الكود
+        css_style = f"""
+        <style>
+            body {{
+                color: {text_color}; /* التأكد من أن لون النص يتطابق مع الثيم */
+            }}
+            table {{
+                border-collapse: collapse; /* دمج حدود الخلايا لتبدو كخط واحد */
+                width: 100%; /* جعل الجدول يملأ العرض المتاح */
+                margin-top: 10px; /* مسافة أعلى الجدول */
+                margin-bottom: 10px; /* مسافة أسفل الجدول */
+            }}
+            th, td {{
+                border: 1px solid {border_color}; /* حدود الخلايا */
+                padding: 8px; /* مسافة داخلية للخلايا */
+                text-align: left; /* محاذاة النص لليسار */
+            }}
+            th {{
+                background-color: {header_bg}; /* خلفية رؤوس الجداول */
+                font-weight: bold; /* نص سميك لرؤوس الجداول */
+            }}
+            /* تنسيق مقاطع الكود */
+            pre {{
+                background-color: {code_bg};
+                padding: 10px;
+                border-radius: 5px;
+                overflow-x: auto; /* السماح بالتمرير الأفقي لأسطر الكود الطويلة */
+            }}
+            code {{
+                font-family: 'Courier New', Courier, monospace; /* خط monospace للكود */
+            }}
+        </style>
+        """
+        self.preview.setHtml(css_style + html)
 
     def new_file(self):
         self.editor.clear()
@@ -255,13 +370,16 @@ class MarkdownEditor(QMainWindow):
         self.setWindowTitle(title)
 
     def toggle_theme(self):
-        if self.styleSheet():
+        # يغير الثيم من فاتح إلى داكن والعكس
+        if self.styleSheet(): # إذا كان هناك ستايل شيت (نفترض أنه داكن)
             self.light_theme()
         else:
             self.dark_theme()
+        # أعد تحديث المعاينة بعد تغيير الثيم لتطبيق ألوان CSS الصحيحة
+        self.update_preview()
 
     def light_theme(self):
-        self.setStyleSheet("")
+        self.setStyleSheet("") # إزالة أي ستايل شيت مطبق (يعود للوضع الافتراضي/الفاتح)
         self.statusBar().showMessage(translations[self.current_language]["theme_light"])
 
     def dark_theme(self):
@@ -275,12 +393,37 @@ class MarkdownEditor(QMainWindow):
             }
             QToolBar {
                 background-color: #3c3c3c;
+                border: none; /* إزالة الحدود لجعلها تبدو أنظف */
+            }
+            QToolBar QToolButton {
+                color: #f0f0f0;
+                background-color: #3c3c3c;
+                padding: 5px;
+                border-radius: 3px;
+            }
+            QToolBar QToolButton:hover {
+                background-color: #505050;
             }
             QMenu {
                 background-color: #3c3c3c;
                 color: #f0f0f0;
+                border: 1px solid #555;
             }
             QMenu::item:selected {
+                background-color: #505050;
+            }
+            QMenuBar {
+                background-color: #3c3c3c;
+                color: #f0f0f0;
+            }
+            QMenuBar::item:selected {
+                background-color: #505050;
+            }
+            QStatusBar {
+                background-color: #3c3c3c;
+                color: #f0f0f0;
+            }
+            QSplitter::handle {
                 background-color: #505050;
             }
         """
@@ -291,9 +434,12 @@ class MarkdownEditor(QMainWindow):
         if lang not in translations:
             return
         self.current_language = lang
-        self.create_toolbar()
-        self.update_window_title()
+        self.create_toolbar() # أعد إنشاء شريط الأدوات لتحديث النصوص
+        self.update_window_title() # أعد تحديث عنوان النافذة
         self.statusBar().showMessage(translations[self.current_language]["language_changed"])
+        # أعد تحديث المعاينة والنصوص الأخرى
+        self.editor.setPlaceholderText(translations[self.current_language].get("editor_placeholder", "")) # إذا كان هناك placeholder
+        self.update_preview() # تحديث ألوان المعاينة إذا كانت تعتمد على الثيم واللغة
 
     def show_help(self):
         help_text = translations[self.current_language]["help_text"]
@@ -306,4 +452,3 @@ if __name__ == "__main__":
     window.resize(900, 600)
     window.show()
     sys.exit(app.exec_())
-
