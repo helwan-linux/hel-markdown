@@ -1,9 +1,0 @@
-[Desktop Entry]
-Name=HelwanMark
-Comment=Markdown file editor and viewer
-Exec=python3 /usr/bin/hel-markdown
-Icon=hel-markdown
-Terminal=false
-Type=Application
-Categories=Utility;TextEditor;Office;
-
